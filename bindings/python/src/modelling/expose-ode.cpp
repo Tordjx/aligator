@@ -98,8 +98,10 @@ void exposeODEs() {
   bp::class_<UpkieDynamics, bp::bases<ODEAbstract>>(
       "UpkieDynamics",
       "upkie la super dynamique",
-      bp::init<>(
-          bp::args("self")))
+      bp::init<const double, const double>(
+          bp::args("self", "gravity", "length")))
+        .def_readwrite("gravity", &UpkieDynamics::gravity_)
+        .def_readwrite("length", &UpkieDynamics::length_)
       .def(CreateDataPythonVisitor<UpkieDynamics>())
       .def(ode_visitor);
 }
