@@ -22,7 +22,6 @@ void exposeExplicitBase();
 void exposeLinearDiscreteDynamics();
 // fwd declaration, see expose-direct-sum.cpp
 void exposeExplicitDynDirectSum();
-
 //// impl
 
 void exposeExplicitDynamics() {

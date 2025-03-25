@@ -8,7 +8,7 @@
 #include "aligator/modelling/dynamics/centroidal-fwd.hpp"
 #include "aligator/modelling/dynamics/continuous-centroidal-fwd.hpp"
 #include "aligator/modelling/contact-map.hpp"
-
+#include "aligator/modelling/dynamics/upkie.hpp"
 namespace aligator::python {
 using namespace ::aligator::dynamics;
 using context::ContinuousDynamicsAbstract;
@@ -24,11 +24,12 @@ using ContinuousCentroidalFwdDynamics =
     ContinuousCentroidalFwdDynamicsTpl<Scalar>;
 using Vector3s = typename math_types<Scalar>::Vector3s;
 using ContactMap = ContactMapTpl<Scalar>;
-
+using UpkieDynamics = UpkieDynamicsTpl<Scalar>;
 void exposeODEs() {
   register_polymorphic_to_python<xyz::polymorphic<ODEAbstract>>();
   PolymorphicMultiBaseVisitor<ODEAbstract, ContinuousDynamicsAbstract>
       ode_visitor;
+
 
   bp::class_<PyODEAbstract<>, bp::bases<ContinuousDynamicsAbstract>,
              boost::noncopyable>(
@@ -93,5 +94,13 @@ void exposeODEs() {
       shared_ptr<ContinuousCentroidalFwdDataTpl<Scalar>>>();
   bp::class_<ContinuousCentroidalFwdDataTpl<Scalar>, bp::bases<ODEData>>(
       "ContinuousCentroidalFwdData", bp::no_init);
+
+  bp::class_<UpkieDynamics, bp::bases<ODEAbstract>>(
+      "UpkieDynamics",
+      "upkie la super dynamique",
+      bp::init<>(
+          bp::args("self")))
+      .def(CreateDataPythonVisitor<UpkieDynamics>())
+      .def(ode_visitor);
 }
 } // namespace aligator::python
