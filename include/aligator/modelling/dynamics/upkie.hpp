@@ -48,8 +48,8 @@ struct UpkieDynamicsTpl : dynamics::ODEAbstractTpl<T> {
     T theta = x[2], rdotdot = u[0];
 
     data.Jx_.setZero();
-    data.Jx_(3, 2) = 1;
-    data.Jx_(2, 3) =std::cos(theta) * gravity_ / length_ + std::sin(theta) * rdotdot / length_;
+    data.Jx_(2,3) = 1;
+    data.Jx_(3,2) =std::cos(theta) * gravity_ / length_ + std::sin(theta) * rdotdot / length_;
 
     data.Ju_.setZero();
     data.Ju_(0, 0) = 1;
