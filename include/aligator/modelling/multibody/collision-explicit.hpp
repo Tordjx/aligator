@@ -34,7 +34,7 @@ public:
   CollisionExplicitResidualTpl(const int ndx, const int nu, const Model &model,
                             const GeometryModel &geom_model,
                             const pinocchio::PairIndex frame_pair_id)
-      : Base(ndx, nu, 1), pin_model_(model), geom_model_(geom_model),
+      : Base(7, 2, 1), pin_model_(model), geom_model_(geom_model),
         frame_pair_id_(frame_pair_id) {
     frame_id1_ =
         geom_model
