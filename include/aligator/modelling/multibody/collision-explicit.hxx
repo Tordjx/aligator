@@ -76,9 +76,8 @@ void CollisionExplicitResidualTpl<Scalar>::computeJacobians(const ConstVectorRef
   Eigen::VectorXd J_q = 
         d.geometry_.distanceResults[frame_pair_id_].normal.transpose() * 
         (d.Jcol2_.template topRows<3>() - d.Jcol_.template topRows<3>());
-
-  d.Jx_.col(5) = J_q.col(0);
-  d.Jx_.col(6) = J_q.col(1);
+  d.Jx_(5,0) = J_q(0);
+  d.Jx_(6,0) = J_q(1);
 }
 
 template <typename Scalar>
