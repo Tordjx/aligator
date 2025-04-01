@@ -28,28 +28,37 @@ struct UpkieDynamicsTpl : dynamics::ODEAbstractTpl<T> {
   using ODEData = dynamics::ContinuousDynamicsDataTpl<T>;
   double gravity_ ; 
   double length_ ;
-  UpkieDynamicsTpl(const double gravity , const double length) : Base(VEC(4), 2) {
+  UpkieDynamicsTpl(const double gravity , const double length) : Base(VEC(7), 2) {
     gravity_ = gravity;
     length_ = length;
   }
 
 
   void forward(const ConstVectorRef &x, const ConstVectorRef &u, ODEData &data) const override {
-    T rdot = x[0], phidot = x[1], theta = x[2], thetadot = x[3];
+    T rdot = x[0], phidot = x[1], theta = x[2], thetadot = x[3], phi = x[4], posx = x[5], posy = x[6];
     T rdotdot = u[0], phidotdot = u[1];
 
     data.xdot_[0] =  rdotdot;
     data.xdot_[1] = phidotdot;
     data.xdot_[2] = thetadot;
     data.xdot_[3] = std::sin(theta) * gravity_ / length_ - std::cos(theta) * rdotdot / length_;
+    data.xdot_[4] = phidot;
+    data.xdot_[5] = rdot * std::cos(phi);
+    data.xdot_[6] = rdot * std::sin(phi);
+
   }
 
   void dForward(const ConstVectorRef &x, const ConstVectorRef &u, ODEData &data) const override {
-    T theta = x[2], rdotdot = u[0];
+    T rdot = x[0] , theta = x[2], rdotdot = u[0];
 
     data.Jx_.setZero();
     data.Jx_(2,3) = 1;
     data.Jx_(3,2) =std::cos(theta) * gravity_ / length_ + std::sin(theta) * rdotdot / length_;
+    data.Jx_(4,1) = 1;
+    data.Jx_(5,0) = std::cos(theta);
+    data.Jx_(5,2) = -rdot*std::sin(theta) ; 
+    data.Jx_(6,0) = std::sin(theta);
+    data.Jx_(6,2) = rdot*std::cos(theta) ;
 
     data.Ju_.setZero();
     data.Ju_(0, 0) = 1;

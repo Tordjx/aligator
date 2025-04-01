@@ -8,6 +8,7 @@
 #include "aligator/modelling/multibody/frame-velocity.hpp"
 #include "aligator/modelling/multibody/frame-translation.hpp"
 #include "aligator/modelling/multibody/frame-collision.hpp"
+#include "aligator/modelling/multibody/collision-explicit.hpp"
 #include "aligator/python/polymorphic-convertible.hpp"
 #ifdef ALIGATOR_PINOCCHIO_V3
 #include "aligator/modelling/multibody/constrained-rnea.hpp"
@@ -55,6 +56,9 @@ void exposeFrameFunctions() {
 
   using FrameCollision = FrameCollisionResidualTpl<Scalar>;
   using FrameCollisionData = FrameCollisionDataTpl<Scalar>;
+
+  using CollisionExplicit = CollisionExplicitResidualTpl<Scalar>;
+  using CollisionExplicitData = CollisionExplicitDataTpl<Scalar>;
 
   using pinocchio::GeometryModel;
 
@@ -144,6 +148,26 @@ void exposeFrameFunctions() {
                     "Pinocchio data struct.")
       .def_readonly("geom_data", &FrameCollisionData::geometry_,
                     "Geometry data struct.");
+
+
+  bp::class_<CollisionExplicit, bp::bases<UnaryFunction>>(
+      "CollisionExplicitResidual", "Frame collision residual function.",
+      bp::init<int, int, const PinModel &, const GeometryModel &,
+               pinocchio::PairIndex>(bp::args("self", "ndx", "nu", "model",
+                                              "geom_model", "frame_pair_id")))
+      .def(FrameAPIVisitor<CollisionExplicit>())
+      .def(unary_visitor);
+
+  bp::register_ptr_to_python<shared_ptr<CollisionExplicitData>>();
+
+  bp::class_<CollisionExplicitData, bp::bases<context::StageFunctionData>>(
+      "CollisionExplicitData", "Data struct for CollisionExplicitResidual.",
+      bp::no_init)
+      .def_readonly("pin_data", &CollisionExplicitData::pin_data_,
+                    "Pinocchio data struct.")
+      .def_readonly("geom_data", &CollisionExplicitData::geometry_,
+                    "Geometry data struct.");
+
 }
 
 #ifdef ALIGATOR_PINOCCHIO_V3
