@@ -5,37 +5,23 @@
 #include <pinocchio/algorithm/kinematics.hpp>
 #include <pinocchio/collision/distance.hpp>
 #include <iostream>
-#include <Eigen> 
+
 namespace aligator {
+
 template <typename Scalar>
 void CollisionExplicitResidualTpl<Scalar>::evaluate(const ConstVectorRef &x,
                                                  BaseData &data) const {
   Data &d = static_cast<Data &>(data);
   pinocchio::DataTpl<Scalar> &pdata = d.pin_data_;
-
-  Scalar pitch = x[2], yaw = x[4], posx = x[5], posy = x[6];
-
-  // Convert RPY to rotation matrix
-  Eigen::Matrix<Scalar, 3, 3> rotmat = pinocchio::rpyToMatrix(Eigen::Matrix<Scalar, 3, 1>(0, pitch, yaw));
-
-  // Convert rotation matrix to quaternion
-  pinocchio::QuaternionTpl<Scalar> quat(rotmat);
-
-  // State vector
-  std::vector<Scalar> q = {
-      posx, posy, Scalar(0.6),
-      quat.x(), quat.y(), quat.z(), quat.w(),
-      0, 0, 0, 0, 0, 0
-  };
-
-  pinocchio::forwardKinematics(pin_model_, pdata, q);
+  pinocchio::forwardKinematics(pin_model_, pdata, x.head(pin_model_.nq));
   pinocchio::updateFramePlacements(pin_model_, pdata);
 
-  // Computes the collision distance between pair of frames
-  pinocchio::updateGeometryPlacements(pin_model_, pdata, geom_model_, d.geometry_, q);
+  // computes the collision distance between pair of frames
+  pinocchio::updateGeometryPlacements(pin_model_, pdata, geom_model_,
+                                      d.geometry_, x.head(pin_model_.nq));
   pinocchio::computeDistance(geom_model_, d.geometry_, frame_pair_id_);
 
-  // Calculate residual
+  // calculate residual
   d.value_[0] = d.geometry_.distanceResults[frame_pair_id_].min_distance;
 }
 
@@ -73,21 +59,16 @@ void CollisionExplicitResidualTpl<Scalar>::computeJacobians(const ConstVectorRef
   d.Jcol2_ = d.jointToP2_.toActionMatrixInverse() * d.Jcol2_;
 
   // compute the residual derivatives
-  // We neglect the jacobian wrt the angles of upkie
-
   d.Jx_.setZero();
-  
-  Eigen::VectorXd J_q = 
-        d.geometry_.distanceResults[frame_pair_id_].normal.transpose() * 
-        (d.Jcol2_.template topRows<3>() - d.Jcol_.template topRows<3>());
-
-  d.Jx_(5) = J_q(0);
-  d.Jx_(6) = J_q(1);
+  d.Jx_.leftCols(pin_model_.nv) =
+      d.geometry_.distanceResults[frame_pair_id_].normal.transpose() *
+      (d.Jcol2_.template topRows<3>() - d.Jcol_.template topRows<3>());
 }
+
 template <typename Scalar>
 CollisionExplicitDataTpl<Scalar>::CollisionExplicitDataTpl(
     const CollisionExplicitResidualTpl<Scalar> &model)
-    : Base(7, 2, 1), pin_data_(model.pin_model_),
+    : Base(model.ndx1, model.nu, 1), pin_data_(model.pin_model_),
       geometry_(pinocchio::GeometryData(model.geom_model_)),
       Jcol_(6, model.pin_model_.nv), Jcol2_(6, model.pin_model_.nv) {
   Jcol_.setZero();

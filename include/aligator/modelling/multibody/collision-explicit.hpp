@@ -34,7 +34,7 @@ public:
   CollisionExplicitResidualTpl(const int ndx, const int nu, const Model &model,
                             const GeometryModel &geom_model,
                             const pinocchio::PairIndex frame_pair_id)
-      : Base(7, 2, 1), pin_model_(model), geom_model_(geom_model),
+      : Base(ndx, nu, 1), pin_model_(model), geom_model_(geom_model),
         frame_pair_id_(frame_pair_id) {
     frame_id1_ =
         geom_model
@@ -88,5 +88,5 @@ struct CollisionExplicitDataTpl : StageFunctionDataTpl<Scalar> {
 } // namespace aligator
 
 #ifdef ALIGATOR_ENABLE_TEMPLATE_INSTANTIATION
-#include "aligator/modelling/multibody/frame-collision.txx"
+#include "aligator/modelling/multibody/collision-explicit.txx"
 #endif

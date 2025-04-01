@@ -149,7 +149,7 @@ void exposeFrameFunctions() {
       .def_readonly("geom_data", &FrameCollisionData::geometry_,
                     "Geometry data struct.");
 
-
+  
   bp::class_<CollisionExplicit, bp::bases<UnaryFunction>>(
       "CollisionExplicitResidual", "Frame collision residual function.",
       bp::init<int, int, const PinModel &, const GeometryModel &,
