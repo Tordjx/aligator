@@ -32,7 +32,7 @@ void CollisionExplicitResidualTpl<Scalar>::evaluate(const ConstVectorRef &x,
   // Computes the collision distance between pair of frames
   pinocchio::updateGeometryPlacements(pin_model_, pdata, geom_model_, d.geometry_, q);
   pinocchio::computeDistance(geom_model_, d.geometry_, frame_pair_id_);
-  d.value_[0] = d.geometry_.distanceResults[frame_pair_id_].min_distance;
+  d.value_[0] = d.geometry_.distanceResults[frame_pair_id_].min_distance-0.75;
 }
 
 template <typename Scalar>
