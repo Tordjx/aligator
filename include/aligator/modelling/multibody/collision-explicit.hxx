@@ -32,15 +32,20 @@ void CollisionExplicitResidualTpl<Scalar>::evaluate(const ConstVectorRef &x,
   // Computes the collision distance between pair of frames
   pinocchio::updateGeometryPlacements(pin_model_, pdata, geom_model_, d.geometry_, q);
   pinocchio::computeDistance(geom_model_, d.geometry_, frame_pair_id_);
-  d.value_[0] = d.geometry_.distanceResults[frame_pair_id_].min_distance-0.75;
+  d.value_[0] = d.geometry_.distanceResults[frame_pair_id_].min_distance;
+  d.pitch_ = pitch;
+  d.yaw_ = yaw;
 }
 
 template <typename Scalar>
 void CollisionExplicitResidualTpl<Scalar>::computeJacobians(const ConstVectorRef &,
                                                          BaseData &data) const {
+  
   Data &d = static_cast<Data &>(data);
   pinocchio::DataTpl<Scalar> &pdata = d.pin_data_;
-
+  // we need pitch and yaw, we get the quaternion from pin data first, then convert to euler
+  Scalar theta = d.pitch_;
+  Scalar phi = d.yaw_;
   // Calculate vector from joint to collision p1 and joint to collision p2,
   // expressed in local world aligned
   d.distance_ = d.geometry_.distanceResults[frame_pair_id_].nearest_points[0] -
@@ -76,6 +81,19 @@ void CollisionExplicitResidualTpl<Scalar>::computeJacobians(const ConstVectorRef
   Eigen::VectorXd J_q = 
         d.geometry_.distanceResults[frame_pair_id_].normal.transpose() * 
         (d.Jcol2_.template topRows<3>() - d.Jcol_.template topRows<3>());
+ 
+  Scalar dfdtheta = J_q(6) * (-std::sin(theta) * std::cos(phi)) +
+               J_q(3) * (-std::cos(theta) * std::sin(phi)) +
+               J_q(4) * (std::cos(theta) * std::cos(phi)) +
+               J_q(5) * (-std::sin(theta) * std::sin(phi));
+
+    // Compute df/dphi
+  Scalar dfdphi = J_q(6) * (-std::cos(theta) * std::sin(phi)) +
+             J_q(3) * (-std::sin(theta) * std::cos(phi)) +
+             J_q(4) * (-std::sin(theta) * std::sin(phi)) +
+             J_q(5) * (std::cos(theta) * std::cos(phi));
+  d.Jx_(2,0) = dfdtheta;
+  d.Jx_(4,0) = dfdphi;
   d.Jx_(5,0) = J_q(0);
   d.Jx_(6,0) = J_q(1);
 }
@@ -85,7 +103,8 @@ CollisionExplicitDataTpl<Scalar>::CollisionExplicitDataTpl(
     const CollisionExplicitResidualTpl<Scalar> &model)
     : Base(7,2, 1), pin_data_(model.pin_model_),
       geometry_(pinocchio::GeometryData(model.geom_model_)),
-      Jcol_(6, model.pin_model_.nv), Jcol2_(6, model.pin_model_.nv) {
+      Jcol_(6, model.pin_model_.nv), Jcol2_(6, model.pin_model_.nv),
+      pitch_(0), yaw_(0) {
   Jcol_.setZero();
   Jcol2_.setZero();
 }

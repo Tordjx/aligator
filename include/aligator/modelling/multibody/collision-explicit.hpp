@@ -27,7 +27,7 @@ public:
   using SE3 = pinocchio::SE3Tpl<Scalar>;
   using Data = CollisionExplicitDataTpl<Scalar>;
   using GeometryModel = pinocchio::GeometryModel;
-
+  
   Model pin_model_;
   GeometryModel geom_model_;
 
@@ -81,6 +81,8 @@ struct CollisionExplicitDataTpl : StageFunctionDataTpl<Scalar> {
   /// Distance from nearest point to joint for each collision frame
   typename math_types<Scalar>::Vector3s distance_;
   typename math_types<Scalar>::Vector3s distance2_;
+  Scalar pitch_;
+  Scalar yaw_;
 
   CollisionExplicitDataTpl(const CollisionExplicitResidualTpl<Scalar> &model);
 };
